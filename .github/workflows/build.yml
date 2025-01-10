@@ -2,6 +2,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'
 
 env:
   REGISTRY: europe-docker.pkg.dev
@@ -15,8 +17,26 @@ jobs:
 
     steps:
     - uses: 'actions/checkout@v4'
-
     - uses: 'google-github-actions/auth@v2'
       with:
         project_id: 'mnacharov-eu-docker'
         workload_identity_provider: 'projects/152460024713/locations/global/workloadIdentityPools/github-com/providers/mnacharov-eu'
+    - name: Docker meta
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: europe-docker.pkg.dev/mnacharov-eu-docker/push-to-gcp/main
+        flavor: |
+          latest=false
+        tags: |
+          type=semver,pattern={{version}}
+          type=sha,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+    - name: Configure GC docker
+      run: |
+        gcloud auth configure-docker europe-docker.pkg.dev
+    - name: Build & Push Airflow
+      uses: docker/build-push-action@v6
+      with:
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
