@@ -1,0 +1,22 @@
+on:
+  push:
+    branches:
+      - main
+
+env:
+  REGISTRY: europe-docker.pkg.dev
+
+jobs:
+  docker-build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: 'read'
+      id-token: 'write'
+
+    steps:
+    - uses: 'actions/checkout@v4'
+
+    - uses: 'google-github-actions/auth@v2'
+      with:
+        project_id: 'mnacharov-eu-docker'
+        workload_identity_provider: 'projects/152460024713/locations/global/workloadIdentityPools/github-com/providers/mnacharov-eu'
