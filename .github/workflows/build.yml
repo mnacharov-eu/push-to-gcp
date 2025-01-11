@@ -1,9 +1,11 @@
 on:
+  schedule:
+  - cron: '26 4 * * 4'
   push:
     branches:
-      - main
+    - main
     tags:
-      - 'v*'
+    - 'v*'
 
 env:
   REGISTRY: europe-docker.pkg.dev
@@ -30,7 +32,8 @@ jobs:
           latest=false
         tags: |
           type=semver,pattern={{version}}
-          type=sha,enable=${{ github.ref == format('refs/heads/{0}', 'main') }}
+          type=sha,enable=${{ github.ref == format('refs/heads/{0}', 'main') && github.event.schedule == null }}
+          type=raw,enable=${{ github.event.schedule != null }},value={{date 'cron-YY-MM-DD'}}
     - name: Configure GC docker
       run: |
         gcloud auth configure-docker europe-docker.pkg.dev
